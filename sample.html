@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>LITERA – Literary Community</title>
+  <style>
+    *{box-sizing:border-box}
+    body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue",sans-serif;background:#f2f2f2;color:#111}
+    section{display:none}
+    button{cursor:pointer}
+
+    /* ===== INTRO ===== */
+    #intro{display:block;padding:80px 18%;background:#fff}
+    #intro h1{font-size:48px;margin-bottom:10px}
+    #intro p{font-size:18px;line-height:1.7;color:#444}
+    #intro button{margin-top:40px;padding:14px 36px;border-radius:30px;border:none;background:#111;color:#fff;font-size:18px}
+
+    /* ===== LOGIN ===== */
+    #login{padding:60px;text-align:center}
+    .login-box{background:#fff;max-width:400px;margin:auto;padding:30px;border-radius:20px}
+    .login-box input{width:100%;padding:12px;margin-bottom:12px;border-radius:10px;border:1px solid #ccc}
+    .login-box button{width:100%;padding:12px;border-radius:20px;border:none;background:#111;color:#fff;font-size:16px}
+    .login-btn{margin-bottom:10px}
+
+
+    /* ===== APP ===== */
+    #app{height:100vh;display:flex}
+    .sidebar{width:220px;background:#fff;border-right:1px solid #ddd;padding:20px}
+    .sidebar button{width:100%;margin-bottom:12px;padding:12px;border-radius:12px;border:none;background:#f2f2f2;font-size:16px}
+    .main{flex:1;padding:20px;overflow-y:auto;padding-bottom:140px}
+    .search{width:100%;padding:14px;border-radius:30px;border:1px solid #ccc;margin-bottom:20px}
+    .carousel{display:flex;gap:16px;overflow-x:auto;margin-bottom:25px}
+    .slide{width:160px;flex-shrink:0;text-align:center;cursor:pointer}
+    .slide img{width:100%;height:220px;object-fit:cover;border-radius:14px;box-shadow:0 4px 12px rgba(0,0,0,.15)}
+    .slide p{font-weight:600;font-size:14px}
+    .post{background:#fff;padding:20px;border-radius:18px;margin-bottom:20px}
+    .post img{max-width:100%;border-radius:14px;margin-top:10px}
+    .post-actions span{margin-right:15px;color:#555}
+    .activity-item{background:#fff;padding:16px;border-radius:14px;margin-bottom:12px;border-left:4px solid #111}
+    .profile-header{display:flex;gap:20px;align-items:center;margin-bottom:20px}
+    .avatar{width:90px;height:90px;border-radius:50%;background:#ccc}
+
+    /* ===== JOURNAL BAR ===== */
+    #journalBar{position:fixed;bottom:0;left:220px;right:0;background:#fff;border-top:1px solid #ddd;padding:12px 20px;display:none}
+    #journalBar textarea{width:60%;height:50px;border-radius:14px;border:1px solid #ccc;padding:10px}
+    #journalBar input{margin-left:10px}
+    #journalBar button{margin-left:10px;padding:10px 20px;border-radius:20px;border:none;background:#111;color:#fff}
+
+    /* ===== MODAL ===== */
+    .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6)}
+    .modal-content{background:#fff;width:70%;margin:8% auto;padding:25px;border-radius:18px}
+    .close{float:right;font-size:26px;cursor:pointer}
+
+    .carousel {
+  display:flex;
+  gap:16px;
+  overflow-x:auto;
+  scroll-behavior:smooth;
+  padding:10px 0;
+}
+.carousel::-webkit-scrollbar { 
+  display:none; 
+} /* Ẩn thanh cuộn */
+  </style>
+</head>
+<body>
+
+  <!-- INTRO -->
+  <section id="intro">
+    <h1>LITERA</h1>
+    <p>LITERA - diễn đàn phát triển văn học & rèn luyện tư duy phản biện, nơi bạn có thể tự do chia sẻ quan điểm cá nhân, thảo luận các vấn đề xã hội – văn học đương đại.</p>
+    <button onclick="goLogin()">Yêu cầu đăng nhập</button>
+  </section>
+
+  <!-- LOGIN -->
+  <section id="login">
+    <h2>Đăng nhập / Tạo tài khoản</h2>
+    <button class="login-btn" id="googleBtn">Google</button>
+    <button class="login-btn" id="facebookBtn">Facebook</button>
+    <hr style="width:300px;margin:30px auto">
+    <div class="login-box">
+      <div style="display:flex;gap:8px;margin-bottom:12px">
+        <button id="modeLogin" class="login-btn" style="flex:1;background:#111;color:#fff">Đăng nhập</button>
+        <button id="modeSignup" class="login-btn" style="flex:1;background:#f2f2f2;color:#111">Tạo tài khoản</button>
+      </div>
+      <input id="username" placeholder="Username / Email">
+      <input id="password" type="password" placeholder="Mật khẩu">
+      <input id="confirm" type="password" placeholder="Xác nhận mật khẩu" style="display:none">
+      <button id="continueBtn">Tiếp tục</button>
+    </div>
+  </section>
+
+  <!-- APP -->
+  <section id="app">
+    <div class="sidebar">
+      <button onclick="showFeed()">Newfeeds</button>
+      <button onclick="showActivity()">Activity</button>
+      <button onclick="showProfile()">Profile</button>
+      <button onclick="showLibrary()">Library</button>
+      <button onclick="showForum()">Forum</button>
+      <button onclick="showSettings()">Settings</button>
+    </div>
+    <div class="main" id="content"></div>
+  </section>
+
+  <!-- JOURNAL BAR -->
+  <div id="journalBar">
+    <textarea id="journalText" placeholder="Viết journal của bạn..."></textarea>
+    <input type="file" id="journalImage" accept="image/*">
+    <button onclick="createPost()">Đăng</button>
+  </div>
+
+  <!-- BOOK MODAL -->
+  <div id="bookModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal()">×</span>
+      <h2 id="bookTitle"></h2>
+      <p id="bookAuthor"></p>
+      <img id="bookAuthorImg"
+     onclick="openAuthorProfile()"
+     style="width:80px;height:80px;border-radius:50%;
+            object-fit:cover;cursor:pointer;display:none">
+
+      <p id="bookGenre"></p>
+      <p id="bookContent"></p>
+      <p id="bookIntro"></p>
+      <p id="bookLink"></p>
+    </div>
+  </div>
+
+<script> 
+  let currentAuthorKey = null;
+
+    /* ELEMENTS */
+const intro=document.getElementById("intro");
+const login=document.getElementById("login");
+const app=document.getElementById("app");
+const content=document.getElementById("content");
+const journalBar=document.getElementById("journalBar");
+const bookModal=document.getElementById("bookModal");
+const bookTitle=document.getElementById("bookTitle");
+const bookAuthor=document.getElementById("bookAuthor");
+const bookGenre=document.getElementById("bookGenre");
+const bookContent=document.getElementById("bookContent");
+const bookIntro=document.getElementById("bookIntro");
+const bookLink=document.getElementById("bookLink");
+
+/* LOGIN ELEMENTS */
+const googleBtn=document.getElementById("googleBtn");
+const facebookBtn=document.getElementById("facebookBtn");
+const modeLoginBtn=document.getElementById("modeLogin");
+const modeSignupBtn=document.getElementById("modeSignup");
+const usernameInput=document.getElementById("username");
+const passwordInput=document.getElementById("password");
+const confirmInput=document.getElementById("confirm");
+const continueBtn=document.getElementById("continueBtn");
+let authMode="login";
+
+/* AUTO LOGIN */
+if(localStorage.getItem("user")){
+  intro.style.display="none";
+  app.style.display="flex";
+  showFeed();
+}
+
+/* AUTH */
+function goLogin(){intro.style.display="none";login.style.display="block";}
+function setAuthMode(mode){
+  authMode=mode;
+  if(mode==="login"){confirmInput.style.display="none";continueBtn.textContent="Đăng nhập";}
+  else{confirmInput.style.display="block";continueBtn.textContent="Tạo tài khoản";}
+}
+function loginEmail(){
+  const username=usernameInput.value.trim();
+  const password=passwordInput.value.trim();
+  const confirm=confirmInput.value.trim();
+  if(!username||!password){alert("Thiếu thông tin");return;}
+  if(authMode==="signup"){
+    if(!confirm){alert("Vui lòng xác nhận mật khẩu");return;}
+    if(password!==confirm){alert("Mật khẩu không khớp");return;}
+  }
+  localStorage.setItem("user",username);
+  login.style.display="none";app.style.display="flex";showFeed();
+}
+googleBtn.onclick=()=>{localStorage.setItem("user","google_user");login.style.display="none";app.style.display="flex";showFeed();}
+facebookBtn.onclick=()=>{localStorage.setItem("user","facebook_user");login.style.display="none";app.style.display="flex";showFeed();}
+modeLoginBtn.onclick=()=>setAuthMode("login");
+modeSignupBtn.onclick=()=>setAuthMode("signup");
+setAuthMode("login");
+continueBtn.onclick=loginEmail;
+
+/* BOOK DATA */
+const books={
+  chipheo:{
+    title:"Chí Phèo",
+    author:"Nam Cao (1915 - 1951)",
+    genre:"Truyện ngắn",
+    content:"Bi kịch người nông dân bị tha hóa.",
+    intro:"Truyện ngắn tiêu biểu của Nam Cao, viết năm 1941. Tác phẩm phản ánh hiện thực xã hội nông thôn Việt Nam trước Cách mạng tháng Tám. Qua nhân vật Chí Phèo, nhà văn phơi bày bi kịch của người nông dân bị tước đoạt quyền làm người. Đồng thời đặt ra câu hỏi về khát vọng được sống lương thiện.",
+    link:"https://book.sachgiai.com/truyen/truyen-ngan-chi-pheo.html"
+  },
+  noibuon:{
+    title:"Nỗi buồn chiến tranh",
+    author:"Bảo Ninh",
+    content:"Nỗi đau hậu chiến.(Tác phẩm đang gây tranh cãi)",
+    intro:"Tiểu thuyết nổi tiếng của Bảo Ninh, xuất bản năm 1990. Tác phẩm kể về cuộc đời nhân vật Kiên – một người lính trở về sau chiến tranh, luôn ám ảnh bởi ký ức khốc liệt. Tác phẩm khắc họa những mất mát tinh thần, sự cô đơn và bi kịch cá nhân trong bối cảnh lịch sử."
+  },
+  book1984:{
+    title:"1984",
+    author:"George Orwell",
+    content:"Xã hội toàn trị.",
+    intro:"Tiểu thuyết dystopia kinh điển, xuất bản năm 1949. George Orwell xây dựng một thế giới nơi mọi hành vi và tư tưởng đều bị giám sát bởi 'Big Brother'. Tác phẩm cảnh báo về nguy cơ mất tự do cá nhân. Đồng thời phơi bày sự thao túng của quyền lực và hệ thống toàn trị.",
+    link:"http://echithai.com/ebook/classic/1984.pdf"
+  },
+  vietbac:{
+    title:"Việt Bắc",
+    author:"Tố Hữu (1920 - 2002)",
+    genre:"Thơ lục bát",
+    content:"Nghĩa tình cách mạng.",
+    intro:"Bài thơ tiêu biểu của Tố Hữu, sáng tác năm 1954 khi kháng chiến chống Pháp thắng lợi. Tác phẩm là lời đối đáp giữa người đi và người ở lại, chan chứa tình nghĩa quân dân. Đồng thời ca ngợi sức mạnh đoàn kết và lý tưởng cách mạng.",
+    link:"https://bennghe.com.vn/blogs/muon-neo-sach/gioi-thieu-bai-tho-viet-bac-1954-to-huu-tron-bai-tho"
+  },
+  muoicuarung:{
+    title:"Muối của rừng",
+    author:"Nguyễn Huy Thiệp (1950 - 2021)",
+    genre:"Truyện ngắn",
+    content:"Hành trình đi săn và sự thức tỉnh lương tri.",
+    intro:"Con người và thiên nhiên: Phản ánh mối quan hệ mật thiết, sự gắn bó không thể tách rời giữa con người và thế giới tự nhiên.Thiện - Ác: Cuộc đấu tranh nội tâm giữa bản năng săn mồi (ác) và lòng trắc ẩn (thiện) trong mỗi con người.Giá trị sống: Tác phẩm gửi gắm thông điệp về lòng nhân ái, sự tôn trọng mọi sinh linh và bài học về trách nhiệm bảo vệ môi trường sống.",
+    link:"https://baotangvanhoc.vn/tac-pham/truyen/chiec-thuyen-ngoai-xa/"
+  },
+  chiecthuyenngoaixa:{
+    title:"Chiếc thuyền ngoài xa",
+    author:"Nguyễn Minh Châu (1930 - 1989)",
+    genre:"Truyện ngắn",
+    content:"Vấn nạn bạo lực gia đình.",
+    intro:"Chiếc thuyền ngoài xa là một tác phẩm nổi tiếng của nhà văn Nguyễn Minh Châu, được sáng tác vào năm 1983. Tác phẩm phản ánh hiện thực khó khăn của cuộc sống người dân chài và đặt ra vấn đề về cái nhìn đa chiều về cuộc sống và nghệ thuật. Đây là một tác phẩm tiêu biểu cho phong cách truyện ngắn tự sự-triết lý của tác giả sau năm 1975, thường được giảng dạy trong chương trình Ngữ văn lớp 12 và là một trong những đề thi tốt nghiệp THPT.",
+    link:"https://isach.info/story.php?story=muoi_cua_rung__nguyen_huy_thiep"
+  },
+   nhatkidangthuytram:{
+    title:"Nhật kí Đặng Thùy Trâm",
+    author:"Đặng Thùy Trâm (1942 - 1970)",
+    genre:"Hồi kí - Tùy bút",
+    content:"Nhật ký Đặng Thùy Trâm là hai tập nhật ký viết tay của bác sĩ Đặng Thùy Trâm từ ngày 8 tháng 4 năm 1968 đến ngày 20 tháng 6 năm 1970 (hai ngày trước khi bà qua đời).",
+    intro:"Một cuốn nhật kí nhặt được bên xác của một nữ Việt Cộng đã suýt bị người lính Mỹ ném vào lửa, nhưng người phiên dịch đã khuyên anh ta nên giữ lại vì “trong đó có lửa”. Nhật kí Đặng Thùy Trâm là những ghi chép hàng ngày của một người nữ bác sĩ về cuộc sống của chị nơi chiến tuyến. Cuốn nhật kí là thế giới riêng của người trí thức nhạy cảm mà không yếu đuối, tha thiết với cuộc sống mà không hề sợ hãi trước những gian nan. Ở đó ta vẫn gặp những băn khoăn trăn trở trước tình yêu, trước cuộc sống phức tạp hàng ngày, những nỗi buồn, nỗi nhớ nhung, sự cô đơn của một người con gái, nhưng đồng thời chúng ta cũng thấy được một ý chí mãnh liệt, những lời nói tự động viên cảnh tỉnh, một lòng can đảm phi thường – những điều đã làm nên một thế hệ anh hùng.",
+    link:"https://nhasachmienphi.com/nhat-ky-dang-thuy-tram.html"
+  },
+   khuctrangca:{
+    title:"Khúc tráng ca nhà giàn",
+    author:"Xuân Ba (1954)",
+    genre:"Phóng sự",
+    content:"Sự lạc quan và tinh thần chiến đấu của những chiến sĩ canh giữ nơi biển cả.",
+    intro:"Văn bản viết về câu chuyện của tác giả, là một nhà báo có dịp đến thăm nhà giàn ở khu vực Ba Kè. Qua văn bản ta nhận ra vẻ đẹp và giá trị ẩn náu đằng sau những hòn đảo chìm và sự khắc nghiệt của thiên nhiên dữ dội đã đưa đến bao hi sinh, mất mát của các chiến sĩ nhà giàn. Qua đó, ngợi ca sự kiên cường, bền bỉ và không ngừng sáng tạo, phát triển để thiết kế nên những công trình vững chãi hơn của các chiến sĩ nhà giàn.",
+    link:"https://www.scribd.com/document/837088452/KHUC-TRANG-CA-NHA-GIAN"
+  },
+  luubiet:{
+    title:"Xuất dương lưu biệt",
+    author:"Phan Bội Châu (1867 - 1940)",
+    genre:"Thơ Thất ngôn bát cú",
+    content:"Bài thơ thể hiện tấm lòng của một chí sĩ cách mạng mang trong thời kì đất nước bị ngoại xâm. Ông mang trong mình lòng yêu nước nồng nàn, lòng nhiệt huyết cùng với tư tưởng mới mẻ, tiến bộ, sẵn sàng đương đầu khó khăn, đi đến phương trời mới để tìm ra con đường giải phóng dân tộc.",
+    intro:"Bài này Phan Bội Châu làm ngày mùng 2 tháng Giêng năm Ất Tị 1905 khi xuất dương ở cảng Hải Phòng để từ giã các đồng chí để sang Nhật Bản. Về sau ông có chép bài này trong Ngục trung thư.",
+    link:"https://www.thivien.net/Phan-B%E1%BB%99i-Ch%C3%A2u/Xu%E1%BA%A5t-d%C6%B0%C6%A1ng-l%C6%B0u-bi%E1%BB%87t/poem-Yrk8Z5PUvxb0Vkin_0xrSw"
+  },
+  taytien:{
+    title:"Tây Tiến",
+    author:"Quang Dũng (1921 - 1988)",
+    genre:"Thơ mới bảy chữ",
+    content:"Thiên nhiên miền Tây hiện lên vừa dữ dội, hiểm trở, vừa mĩ lệ, thơ mộng, là thử thách và cũng là phông nền cho vẻ đẹp của người lính. Người lính Tây Tiến hiện ra trong dáng vẻ trẻ trung, lãng mạn, đầy chất bi tráng – những chàng trai Hà Nội ra đi với “mắt biên cương”, “dáng kiêu hùng”, sẵn sàng hy sinh vì lý tưởng độc lập, tự do của Tổ quốc. Dù cuộc sống gian khổ, thiếu thốn, họ vẫn giữ trong tim tình yêu quê hương, tình đồng đội và khát vọng sống đẹp.",
+    intro:"Quang Dũng tham gia đoàn quân Tây Tiến năm 1947 và hành quân lên Tây Bắc với nhiệm vụ phối hợp với bộ đội nước bạn để bảo vệ vùng biên giới Việt Lào. Ban đầu, bài thơ được đặt tên là Nhớ Tây Tiến và đăng lần đầu trên Báo Quân Bạch Đằng của Liên khu III năm 1948, trên Báo Văn nghệ Việt Bắc năm 1949.",
+    link:"https://www.thivien.net/Quang-D%C5%A9ng/T%C3%A2y-Ti%E1%BA%BFn/poem-xTFdqZUSfE3riX2yNfcavA"
+  }
+};
+
+const authors = {
+  "Nam Cao": {
+    name: "Nam Cao",
+    avatar: "https://vanvn.vn/wp-content/uploads/2023/07/nam-cao-vanvn4.jpg",
+    bio: "Nhà văn Nam Cao (1915/1917- 28 tháng 11 năm 1951) - tên thật là Trần Hữu Tri, là một nhà văn người Việt Nam. Ông là nhà văn hiện thực lớn (trước Cách mạng), một nhà báo kháng chiến (sau Cách mạng), một trong những nhà văn tiêu biểu nhất thế kỷ 20. Nam Cao có nhiều đóng góp quan trọng đối với việc hoàn thiện phong cách truyện ngắn và tiểu thuyết Việt Nam ở nửa đầu thế kỷ 20.",
+    years: "1915 – 1951",
+    works: ["Chí Phèo, Nghèo, Lão Hạc, Điếu Văn, Đôi Mắt,..."]
+  },
+  "Tố Hữu": {
+    name: "Tố Hữu",
+    avatar: "https://damrong.lamdong.dcs.vn/resize.aspx?file=%2FPortals%2F9%2Fmedia%2Fnewsimage%2F1%2F-%2F0%2F1-08.jpg&w=800&h=-1",
+    bio: "Tố Hữu là nhà thơ cách mạng lớn nhất Việt Nam trong thế kỷ XX. Ông đã đưa thơ chính trị đến trình độ rất trữ tình. Những tác phẩm của ông là những bài ca cách mạng, phản ánh chân thực các giai đoạn lịch sử, hừng hực tính chiến đấu và giàu tính trữ tình, có tính tư tưởng cao, sức động viên, lôi cuốn rộng rãi các tầng lớp nhân dân trong cuộc đấu tranh giải phóng dân tộc và xây dựng đất nước",
+    years: "1920 – 2002",
+    works: ["Từ Ấy (1937 - 1946), Việt Bắc (1947 - 1954), Gió Lộng (1955 - 1961), Ra Trận (1962 - 1971),..."]
+  },
+  "Nguyễn Minh Châu": {
+    name: "Nguyễn Minh Châu",
+    avatar: "https://upload.wikimedia.org/wikipedia/vi/3/36/Nh%C3%A0_v%C4%83n_Nguy%E1%BB%85n_Minh_Ch%C3%A2u.jpg",
+    bio: "Cây bút mở đường cho văn học Việt Nam thời kỳ đổi mới.",
+    years: "1930 – 1989",
+    works: [" Sau một buổi tập (1960); Cửa sông(1966), Dấu chân người lính(1972), Miền cháy (1977), Người đàn bà trên chuyến tàu tốc hành (1983), Bến quê (1985), Phiên chợ Giáp (1989),..."]
+  },
+  "Đặng Thùy Trâm": {
+    name: "Đặng Thùy Trâm",
+    avatar: "https://images2.thanhnien.vn/528068263637045248/2025/6/13/dang-thuy-tram-1-online-17498257185181394348576.jpg",
+    bio: "Liệt sĩ – Bác sĩ Đặng Thùy Trâm: Sáng mãi ngọn lửa tuổi hai mươi",
+    years: "1942 – 1970",
+    works: ["Nhật kí Đặng Thùy Trâm"]
+  },
+    "Nguyễn Huy Thiệp": {
+    name: "Nguyễn Huy Thiệp",
+    avatar: "https://vanvn.vn/wp-content/uploads/2021/03/Nguyen-Huy-Thiep-HXTuyen.jpg",
+    bio: "Nguyễn Huy Thiệp sinh ngày 29 tháng 4 năm 1950 tại huyện Thanh Trì, Hà Nội. Ông là nhà văn đương đại Việt Nam nổi tiếng trong các thể loại kịch, truyện ngắn và tiểu thuyết với những góc nhìn mới, táo bạo. Ông từng nhận được Huân chương Văn học Nghệ thuật Pháp (2007), giải thưởng Premio Nonino, Italy (2008). Sau tiểu thuyết Vong bướm, một thể nghiệm với chèo cổ, Nguyễn Huy Thiệp đã quyết định dừng hẳn nghiệp sáng tác ở tuổi 65.",
+    years: "1950 - 2021",
+    works: ["Tướng về hưu, Không có vua, Những ngọn gió Hua Tát, Chảy đi sông ơi, Con gái thủy thần..."]
+  },
+  "Phan Bội Châu": {
+    name: "Phan Bội Châu",
+    avatar: "https://baokhanhhoa.vn/CMSImage/Resources/Uploaded/dinhnhi/0911phanboichau1.jpg",
+    bio: "Phan Bội Châu 潘佩珠 (26/12/1867 - 29/12/1940) sinh tại làng Đan Nhiễm, xã Nam Hoà, huyện Nam Đàn, tỉnh Nghệ An, cha là Phan Văn Phổ, mẹ là Nguyễn Thị Nhàn, mất tại Huế, là một nhà cách mạng Việt Nam trong phong trào chống Pháp. Ông đã thành lập phong trào Duy Tân và khởi xướng phong trào Đông Du.",
+    years: "1867 - 1940",
+    works: ["“Việt Nam vong quốc sử”,  “Hải ngoại huyết thư”,  “Ngục trung thư”,  “Trùng Quang tâm sử”,  “Phan Sào Nam văn tập”,  “Phan Bội Châu niên biểu”,...."]
+  },
+  "Quang Dũng": {
+    name: "Quang Dũng",
+    avatar: "https://www.thivien.net/attachment/koGngMcp89Pm8QL6IhNyiA.1110857880.webp",
+    bio: "Quang Dũng (1921 - 13/10/1988) tên thật vốn là Bùi Đình Dậu nhưng về sau bố đổi thành Bùi Đình Diệm vì tên Dậu trùng với một người trong họ, sinh tại làng Phượng Trì, huyện Đan Phượng, tỉnh Sơn Tây (nay thuộc Hà Nội), mất tại Hà Nội. Quang Dũng tham gia hoạt động cách mạng từ trước Khởi nghĩa Tháng Tám. Khi tổng khởi nghĩa 19-8-1945 thành công, ông được cử làm phái viên phòng Quân vụ Bắc bộ. Những ngày đầu kháng chiến, ông tham gia lấy vũ khí của địch, cất giấu máy móc quân sự, đi các địa phương tìm mua vũ khí cho cách mạng. ",
+    years: "1921 - 1988",
+    works: ["Tây Tiến, Đôi mắt người Sơn Tây, Đôi bờ, Quán bên đường, Lính râu ria,..."]
+  }
+};
+
+
+/* MODAL */
+function openBook(k){
+  bookModal.style.display="block";
+  bookTitle.innerText=books[k].title;
+  bookAuthor.innerText="Tác giả: "+books[k].author;
+  currentAuthorKey = books[k].author.split(" (")[0];
+  const img = document.getElementById("bookAuthorImg");
+img.src = authors[currentAuthorKey]?.avatar || "";
+img.style.display = authors[currentAuthorKey] ? "block" : "none";
+
+  bookGenre.innerText = "Thể loại: "+(books[k].genre ||"Chưa cập nhật");
+  bookContent.innerText="Nội dung: "+books[k].content;
+
+  // Intro dạng gạch đầu dòng
+  const introParts = books[k].intro.split(".").map(s=>s.trim()).filter(s=>s);
+  bookIntro.innerHTML = "Giới thiệu:<ul>" + introParts.map(p=>"<li>"+p+"</li>").join("") + "</ul>";
+
+  // Link riêng
+  if(books[k].link){
+    bookLink.innerHTML = 'Đọc sách ở đây: <a href="'+books[k].link+'" target="_blank">'+books[k].link+'</a>';
+  } else {
+    bookLink.innerHTML = "";
+  }
+}
+function closeModal(){bookModal.style.display="none";}
+
+/* PRESET POST */
+if(!localStorage.getItem("preset")){
+  localStorage.setItem("posts",JSON.stringify([{
+    user:"phuongtranga12",
+    title:"Đôi chút thắc mắc về tác phẩm Việt Bắc.",
+    text:"Tại sao nhà thơ Tố Hữu lại sử dụng các xưng hô mình - ta xuyên suốt bài thơ vậy mọi người? Mình là ai còn ta là ai?",
+    likes:3467,
+    comments:[
+      {user:"hoangminh02",text:"Mình là lực lượng kháng chiến, còn ta là nhân dân Việt Bắc á bạn."},
+      {user:"lananh_lit",text:"Câu hỏi rất hay!"},
+      {user:"vietdung_review",text:"Mình cũng thắc mắc"}
+    ]
+  }]));
+  localStorage.setItem("preset","true");
+}
+
+/* FEED */
+function showFeed(){
+    journalBar.style.display = "flex";
+
+    content.innerHTML = `
+<div style="position:relative; margin-bottom:25px;">
+
+  <!-- Nút trái -->
+  <button id="prevBtn" style="
+      position:absolute;top:50%;left:0;transform:translateY(-50%);
+      background:#111;color:white;border:none;padding:12px;border-radius:50%;cursor:pointer;z-index:10">◀</button>
+
+  <!-- Nút phải -->
+  <button id="nextBtn" style="
+      position:absolute;top:50%;right:0;transform:translateY(-50%);
+      background:#111;color:white;border:none;padding:12px;border-radius:50%;cursor:pointer;z-index:10">▶</button>
+
+  <!-- Carousel -->
+  <div class="carousel" id="carousel">
+
+      <div class="slide">
+        <img src="https://product.hstatic.net/1000237375/product/thiet_ke_chua_co_ten__79__17e55f38561546cea108dbaa92c7721c_master.png"
+             onclick="openBook('chipheo')">
+        <p>Chí Phèo</p>
+        <button type="button" onclick="saveBook('chipheo')">🔖 Lưu sách</button>
+        <button type="button" onclick="deleteBook('chipheo')">❌ Xóa sách</button>
+        <button type="button" onclick="joinForum('chipheo')">🗨️ Tham gia</button>
+      </div>
+
+      <div class="slide">
+        <img src="https://www.nxbtre.com.vn/Images/Book/nxbtre_full_10152022_031532.jpg"
+             onclick="openBook('noibuon')">
+        <p>Nỗi buồn chiến tranh</p>
+        <button type="button" onclick="saveBook('noibuon')">🔖 Lưu sách</button>
+        <button type="button" onclick="deleteBook('noibuon')">❌ Xóa sách</button>
+        <button type="button" onclick="joinForum('noibuon')">🗨️ Tham gia</button>
+      </div>
+
+      <div class="slide">
+        <img src="https://m.media-amazon.com/images/S/compressed.photo.goodreads.com/books/1327144697i/3744438.jpg">
+        <p>1984</p>
+        <button type="button" onclick="saveBook('book1984')">🔖 Lưu sách</button>
+        <button type="button" onclick="deleteBook('book1984')">❌ Xóa sách</button>
+        <button type="button" onclick="joinForum('book1984')">🗨️ Tham gia</button>
+      </div>
+
+      <div class="slide">
+        <img src="https://xemsachhay.com/wp-content/uploads/2018/04/7552_p13608.jpg"
+             onclick="openBook('vietbac')">
+        <p>Việt Bắc</p>
+        <button type="button" onclick="saveBook('vietbac')">🔖 Lưu sách</button>
+        <button type="button" onclick="deleteBook('vietbac')">❌ Xóa sách</button>
+        <button type="button" onclick="joinForum('vietbac')">🗨️ Tham gia</button>
+      </div>
+
+      <div class="slide">
+        <img src="https://isach.info/images/story/cover/muoi_cua_rung__nguyen_huy_thiep.jpg"
+             onclick="openBook('muoicuarung')">
+        <p>Muối của rừng</p>
+        <button type="button" onclick="saveBook('muoicuarung')">🔖 Lưu sách</button>
+        <button type="button" onclick="deleteBook('muoicuarung')">❌ Xóa sách</button>
+        <button type="button" onclick="joinForum('muoicuarung')">🗨️ Tham gia</button>
+      </div>
+
+      <div class="slide">
+        <img src="https://i0.wp.com/sachnoiviet.net/wp-content/uploads/2021/11/chiec-thuyen-ngoai-xa.jpg?fit=200%2C300&ssl=1"
+             onclick="openBook('chiecthuyenngoaixa')">
+        <p>Chiếc thuyền ngoài xa</p>
+        <button type="button" onclick="saveBook('chiecthuyenngoaixa')">🔖 Lưu sách</button>
+        <button type="button" onclick="deleteBook('chiecthuyenngoaixa')">❌ Xóa sách</button>
+        <button type="button" onclick="joinForum('chiecthuyenngoaixa')">🗨️ Tham gia</button>
+      </div>
+
+      <div class="slide">
+        <img src="https://nhasachmienphi.com/images/thumbnail/nhasachmienphi-nhat-ky-dang-thuy-tram.jpg"
+             onclick="openBook('nhatkidangthuytram')">
+        <p>Nhật kí Đặng Thùy Trâm</p>
+        <button type="button" onclick="saveBook('nhatkidangthuytram')">🔖 Lưu sách</button>
+        <button type="button" onclick="deleteBook('nhatkidangthuytram')">❌ Xóa sách</button>
+        <button type="button" onclick="joinForum('nhatkidangthuytram')">🗨️ Tham gia</button>
+      </div>
+
+      <div class="slide">
+        <img src="https://haylamdo.com/soan-van-12-cd/images/khuc-trang-ca-nha-gian.PNG"
+             onclick="openBook('khuctrangca')">
+        <p>Khúc tráng ca nhà giàn</p>
+        <button type="button" onclick="saveBook('khuctrangca')">🔖 Lưu sách</button>
+        <button type="button" onclick="deleteBook('khuctrangca')">❌ Xóa sách</button>
+        <button type="button" onclick="joinForum('khuctrangca')">🗨️ Tham gia</button>
+      </div>
+
+      <div class="slide">
+        <img src="https://img.loigiaihay.com/picture/article/2020/0103/phan-tich-luu-biet-xuat-duong-795x385-0.jpg"
+             onclick="openBook('luubiet')">
+        <p>Xuất dương lưu biệt</p>
+        <button type="button" onclick="saveBook('luubiet')">🔖 Lưu sách</button>
+        <button type="button" onclick="deleteBook('luubiet')">❌ Xóa sách</button>
+        <button type="button" onclick="joinForum('luubiet')">🗨️ Tham gia</button>
+      </div>
+
+      <div class="slide">
+        <img src="https://thanhnien.mediacdn.vn/uploaded/hoangnam/2021_03_14/chantrang2_BICJ.jpg?width=500"
+             onclick="openBook('taytien')">
+        <p>Tây Tiến</p>
+        <button type="button" onclick="saveBook('taytien')">🔖 Lưu sách</button>
+        <button type="button" onclick="deleteBook('taytien')">❌ Xóa sách</button>
+        <button type="button" onclick="joinForum('taytien')">🗨️ Tham gia</button>
+      </div>
+
+
+    </div>
+
+    <div id="posts"></div>
+    `;
+
+    renderPosts();
+    // Carousel scroll buttons
+const carouselEl = document.getElementById("carousel");
+const prevBtn = document.getElementById("prevBtn");
+const nextBtn = document.getElementById("nextBtn");
+
+prevBtn.onclick = () => {
+  carouselEl.scrollBy({ left: -200, behavior: "smooth" });
+};
+nextBtn.onclick = () => {
+  carouselEl.scrollBy({ left: 200, behavior: "smooth" });
+};
+
+}
+
+/* ===== DELETE BOOK ===== */
+function deleteBook(key){
+    let library = JSON.parse(localStorage.getItem("library") || "[]");
+    if(!library.includes(key)){
+        alert("⚠️ Sách chưa có trong Library");
+        return;
+    }
+    library = library.filter(k => k !== key);
+    localStorage.setItem("library", JSON.stringify(library));
+    alert("🗑️ Đã xóa sách khỏi Library");
+}
+
+
+
+/* POSTS */
+function createPost(){
+  const text=journalText.value;
+  if(!text) return;
+  const img=document.getElementById("journalImage").files[0];
+  const reader=new FileReader();
+  reader.onload=()=>{
+    let posts=JSON.parse(localStorage.getItem("posts")||"[]");
+    posts.unshift({user:localStorage.getItem("user"),text,likes:0,img:reader.result});
+    localStorage.setItem("posts",JSON.stringify(posts));
+    journalText.value="";journalImage.value="";
+    renderPosts();
+  };
+  img?reader.readAsDataURL(img):reader.onload();
+}
+function renderPosts(){
+  let posts=JSON.parse(localStorage.getItem("posts")||"[]");
+  document.getElementById("posts").innerHTML=posts.map((p,index)=>`
+    <div class="post" id="post-${index}">
+      <h3>@${p.user}</h3>
+      <h4>${p.title||""}</h4>
+      <p>${p.text}</p>
+      ${p.img?`<img src="${p.img}">`:""}
+      <div class="post-actions">
+        <span onclick="likePost(${index})" style="cursor:pointer">❤️ Thích (${p.likes})</span>
+        <span onclick="toggleComments(${index})" style="cursor:pointer">💬 Bình luận (${p.comments?p.comments.length:0})</span>
+        <span onclick="repostPost(${index})" style="cursor:pointer">🔄 Repost (${p.reposts?p.reposts.length:0})</span>
+      </div>
+      <div class="comments" id="comments-${index}" style="margin-top:10px;display:none">
+        ${p.comments && p.comments.length ? p.comments.map(c=>`<p><strong>@${c.user}:</strong> ${c.text}</p>`).join("") : "<p>Chưa có bình luận nào.</p>"}
+        <input type="text" id="commentInput-${index}" placeholder="Viết bình luận..." style="width:80%;padding:6px;border-radius:10px;border:1px solid #ccc;margin-top:6px">
+        <button onclick="addComment(${index})" style="padding:6px 12px;margin-left:6px;border:none;border-radius:12px;background:#111;color:white;cursor:pointer">Đăng</button>
+      </div>
+    </div>
+  `).join("");
+}
+
+/* OTHER */
+function showActivity(){
+  journalBar.style.display="none";
+  content.innerHTML=`<h2>Activity</h2><div class="activity-item">❤️ Có người thích bài bạn</div>`;
+}
+
+function showProfile(){
+  journalBar.style.display="none";
+  content.innerHTML=`<h2>@${localStorage.getItem("user")}</h2>`;
+}
+
+function showLibrary(){
+  journalBar.style.display="none";
+  content.innerHTML=`<h2>Library</h2><button onclick="save()">Sách đã lưu</button>`;
+}
+
+function showSettings(){
+  journalBar.style.display="none";
+  content.innerHTML=`<h2>Settings</h2><button onclick="logout()">Đăng xuất</button>`;
+}
+
+
+function logout(){
+  localStorage.clear();
+  location.reload();
+}
+
+
+/* ===== SAVE BOOK ===== */
+function saveBook(key){
+    let library = JSON.parse(localStorage.getItem("library") || "[]");
+    if(library.includes(key)){
+        alert("📌 Sách đã có trong Library");
+        return;
+    }
+    library.push(key);
+    localStorage.setItem("library", JSON.stringify(library));
+    alert("✅ Đã lưu sách vào Library");
+}
+
+/* ===== LIBRARY PAGE ===== */
+function showLibrary(){
+    journalBar.style.display="none";
+    let library = JSON.parse(localStorage.getItem("library") || "[]");
+
+    if(library.length === 0){
+        content.innerHTML = `<h2>📚 Library</h2><p>Bạn chưa lưu sách nào.</p>`;
+        return;
+    }
+
+    content.innerHTML = `
+    <h2>📚 Library</h2>
+    ${library.map(k => `
+      <div class="post">
+        <h3>${books[k].title}</h3>
+        <p><strong>Tác giả:</strong> ${books[k].author}</p>
+        <p>${books[k].content}</p>
+        <button onclick="openBook('${k}')">📖 Xem chi tiết</button>
+      </div>
+    `).join("")}
+    `;
+}
+
+/* ===== PROFILE THREADS-LIKE HOÀN CHỈNH ===== */
+
+// Khởi tạo profile mặc định nếu chưa có
+let profile = JSON.parse(localStorage.getItem("profile")) || {
+    username: localStorage.getItem("user") || "Anonymous",
+    avatar: "https://via.placeholder.com/90",
+    bio: "Chưa cập nhật.",
+    topics: [],
+    followers: 0,
+    posts: [], // Bài viết cá nhân
+    reposts: [] // Bài viết đã repost
+};
+
+// Render profile Threads-like
+function renderProfile(){
+    content.innerHTML = `
+        <div style="background:#fff;border-radius:18px;padding:25px;margin-bottom:20px;box-shadow:0 4px 12px rgba(0,0,0,0.1)">
+            <div style="display:flex;align-items:center;gap:20px;margin-bottom:15px">
+                <img src="${profile.avatar}" style="width:120px;height:120px;border-radius:50%;object-fit:cover;border:3px solid #111">
+                <div style="flex:1">
+                    <div style="display:flex;align-items:center;justify-content:space-between">
+                        <h2 style="margin:0;font-size:26px">@${profile.username}</h2>
+                        <button onclick="openEditProfile()" style="padding:8px 16px;background:#111;color:white;border:none;border-radius:12px;font-weight:600;cursor:pointer">Chỉnh sửa</button>
+                    </div>
+                    <p style="margin:6px 0;font-size:14px;color:#555">Bio: ${profile.bio}</p>
+                    <p style="margin:6px 0;font-size:14px;color:#555">Chủ đề quan tâm: ${profile.topics.join(", ") || "Chưa có"}</p>
+                    <p style="margin:6px 0;font-size:14px;color:#555">Followers: ${profile.followers}</p>
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <h3 style="margin-bottom:12px;font-size:18px;color:#111">Bài viết cá nhân</h3>
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:15px;margin-bottom:30px">
+                ${profile.posts.length ? profile.posts.map(p=>`
+                    <div style="background:#fff;border-radius:14px;padding:12px;box-shadow:0 2px 6px rgba(0,0,0,0.1);font-size:14px">${p}</div>
+                `).join("") : "<p>Chưa có bài viết.</p>"}
+            </div>
+
+            <h3 style="margin-bottom:12px;font-size:18px;color:#111">Bài viết đã repost</h3>
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:15px">
+                ${profile.reposts.length ? profile.reposts.map(p=>`
+                    <div style="background:#fff;border-radius:14px;padding:12px;box-shadow:0 2px 6px rgba(0,0,0,0.1);font-size:14px">${p}</div>
+                `).join("") : "<p>Chưa có bài repost.</p>"}
+            </div>
+        </div>
+    `;
+}
+
+// Mở form chỉnh sửa profile
+function openEditProfile(){
+    // Xóa form cũ nếu còn
+    const oldForm = document.getElementById("editProfileForm");
+    if(oldForm) oldForm.remove();
+
+    content.innerHTML += `
+        <div id="editProfileForm" style="background:#fff;padding:20px;border-radius:18px;margin-top:20px;box-shadow:0 4px 12px rgba(0,0,0,0.1)">
+            <h3 style="margin-bottom:15px;color:#111">Chỉnh sửa Profile</h3>
+            <input type="text" id="editUsername" placeholder="Tên người dùng" value="${profile.username}" style="width:100%;margin-bottom:12px;padding:10px;border-radius:10px;border:1px solid #ccc">
+            <textarea id="editBio" placeholder="Bio" style="width:100%;margin-bottom:12px;padding:10px;border-radius:10px;border:1px solid #ccc">${profile.bio}</textarea>
+            <input type="text" id="editTopics" placeholder="Chủ đề quan tâm (ngăn cách bằng dấu ,)" value="${profile.topics.join(", ")}" style="width:100%;margin-bottom:12px;padding:10px;border-radius:10px;border:1px solid #ccc">
+            <input type="number" id="editFollowers" placeholder="Followers" value="${profile.followers}" style="width:100%;margin-bottom:12px;padding:10px;border-radius:10px;border:1px solid #ccc">
+            <input type="file" id="editAvatar" style="margin-bottom:12px">
+            <div style="display:flex;gap:10px">
+                <button onclick="saveProfileEdits()" style="flex:1;padding:10px;background:#111;color:white;border:none;border-radius:12px;cursor:pointer">Lưu</button>
+                <button onclick="renderProfile()" style="flex:1;padding:10px;background:#ccc;color:#111;border:none;border-radius:12px;cursor:pointer">Hủy</button>
+            </div>
+        </div>
+    `;
+}
+
+// Lưu chỉnh sửa profile
+function saveProfileEdits(){
+    profile.username = document.getElementById("editUsername").value || profile.username;
+    profile.bio = document.getElementById("editBio").value || profile.bio;
+    profile.topics = document.getElementById("editTopics").value.split(",").map(t=>t.trim()).filter(t=>t);
+    profile.followers = parseInt(document.getElementById("editFollowers").value) || profile.followers;
+
+    const avatarFile = document.getElementById("editAvatar").files[0];
+    if(avatarFile){
+        const reader = new FileReader();
+        reader.onload = ()=>{
+            profile.avatar = reader.result;
+            localStorage.setItem("profile", JSON.stringify(profile));
+            renderProfile();
+        };
+        reader.readAsDataURL(avatarFile);
+    } else {
+        localStorage.setItem("profile", JSON.stringify(profile));
+        renderProfile();
+    }
+}
+
+// Hiển thị profile
+function showProfile(){
+    journalBar.style.display="none";
+    profile.username = localStorage.getItem("user") || profile.username;
+    renderProfile();
+}
+
+function likePost(index){
+  let posts=JSON.parse(localStorage.getItem("posts")||"[]");
+  posts[index].likes = (posts[index].likes || 0) + 1;
+  localStorage.setItem("posts", JSON.stringify(posts));
+  renderPosts();
+}
+
+function toggleComments(index){
+  const commentBox = document.getElementById(`comments-${index}`);
+  commentBox.style.display = commentBox.style.display === "none" ? "block" : "none";
+}
+
+function addComment(index){
+  const input = document.getElementById(`commentInput-${index}`);
+  const text = input.value.trim();
+  if(!text) return;
+  
+  let posts=JSON.parse(localStorage.getItem("posts")||"[]");
+  if(!posts[index].comments) posts[index].comments=[];
+  
+  posts[index].comments.push({user: localStorage.getItem("user")||"Anonymous", text});
+  localStorage.setItem("posts", JSON.stringify(posts));
+  input.value="";
+  renderPosts();
+  toggleComments(index); // Giữ mở khung bình luận
+  toggleComments(index); // Mở lại sau render
+}
+
+function repostPost(index){
+  let posts=JSON.parse(localStorage.getItem("posts")||"[]");
+  let post=posts[index];
+
+  // Lưu vào profile
+  if(!profile.reposts) profile.reposts=[];
+  profile.reposts.unshift(`${post.user}: ${post.text}`);
+  localStorage.setItem("profile", JSON.stringify(profile));
+
+  // Ghi nhận repost trong bài viết gốc
+  if(!post.reposts) post.reposts=[];
+  post.reposts.push(localStorage.getItem("user")||"Anonymous");
+  localStorage.setItem("posts", JSON.stringify(posts));
+
+  // Ghi Activity
+  addActivity(`@${localStorage.getItem("user")||"Anonymous"} đã repost bài viết của @${post.user}`);
+
+  renderPosts();
+  alert("✅ Bài viết đã được repost vào profile của bạn!");
+}
+
+function likePost(index){
+  let posts=JSON.parse(localStorage.getItem("posts")||"[]");
+  posts[index].likes = (posts[index].likes || 0) + 1;
+  localStorage.setItem("posts", JSON.stringify(posts));
+
+  addActivity(`@${localStorage.getItem("user")||"Anonymous"} đã thích bài viết của @${posts[index].user}`);
+  renderPosts();
+}
+
+function addComment(index){
+  const input=document.getElementById(`commentInput-${index}`);
+  const text=input.value.trim();
+  if(!text) return;
+
+  let posts=JSON.parse(localStorage.getItem("posts")||"[]");
+  if(!posts[index].comments) posts[index].comments=[];
+  posts[index].comments.push({user: localStorage.getItem("user")||"Anonymous", text});
+  localStorage.setItem("posts", JSON.stringify(posts));
+  input.value="";
+  toggleComments(index); toggleComments(index);
+
+  addActivity(`@${localStorage.getItem("user")||"Anonymous"} đã bình luận bài viết của @${posts[index].user}`);
+}
+
+function addActivity(message){
+  let activity=JSON.parse(localStorage.getItem("activity")||"[]");
+  activity.unshift({message,time:new Date().toLocaleTimeString()});
+  localStorage.setItem("activity", JSON.stringify(activity));
+}
+
+function showActivity(){
+  journalBar.style.display="none";
+  let activity=JSON.parse(localStorage.getItem("activity")||"[]");
+  content.innerHTML=`<h2>Activity</h2>` + activity.map(a=>
+    `<div class="activity-item">${a.message} <span style="float:right;font-size:12px;color:#999">${a.time}</span></div>`
+  ).join("");
+}
+
+function createPost(){
+  const text=journalText.value;
+  if(!text) return;
+  const img=document.getElementById("journalImage").files[0];
+  const reader=new FileReader();
+  reader.onload=()=>{
+    let posts=JSON.parse(localStorage.getItem("posts")||"[]");
+    posts.unshift({user:localStorage.getItem("user")||"Anonymous",text,likes:0,comments:[],reposts:[],img:reader.result});
+    localStorage.setItem("posts",JSON.stringify(posts));
+    journalText.value="";journalImage.value="";
+    renderPosts();
+    addActivity(`@${localStorage.getItem("user")||"Anonymous"} đã đăng bài viết mới`);
+  };
+  img?reader.readAsDataURL(img):reader.onload();
+}
+
+/* ===== FORUM DATA ===== */
+function joinForum(bookKey){
+  let joined = JSON.parse(localStorage.getItem("joinedForums") || "[]");
+
+  if(!joined.includes(bookKey)){
+    joined.push(bookKey);
+    localStorage.setItem("joinedForums", JSON.stringify(joined));
+  }
+
+  openForumDetail(bookKey); // CHUYỂN TRANG TRỰC TIẾP
+}
+
+function showForum(){
+  journalBar.style.display = "none";
+
+  let joined = JSON.parse(localStorage.getItem("joinedForums") || "[]");
+
+  if(joined.length === 0){
+    content.innerHTML = `
+      <h2>🗨️ Forum</h2>
+      <p>Bạn chưa tham gia diễn đàn nào.</p>
+    `;
+    return;
+  }
+
+  content.innerHTML = `
+    <h2>🗨️ Forum đã tham gia</h2>
+    ${joined.map(k => `
+      <div class="post" onclick="openForumDetail('${k}')" style="cursor:pointer">
+        <h3>${books[k].title}</h3>
+        <p>${books[k].content}</p>
+      </div>
+    `).join("")}
+  `;
+}
+
+function openForumDetail(bookKey){
+  journalBar.style.display = "none";
+
+  let forumPosts = JSON.parse(localStorage.getItem("forum_"+bookKey) || "[]");
+
+  content.innerHTML = `
+    <h2>🗨️ Forum: ${books[bookKey].title}</h2>
+
+    <div class="post">
+      <textarea id="forumText"
+        placeholder="Viết bài thảo luận..."
+        style="width:100%;height:90px;border-radius:14px;padding:12px"></textarea>
+
+      <button onclick="createForumPost('${bookKey}')"
+        style="margin-top:10px;padding:10px 20px;border:none;border-radius:20px;background:#111;color:#fff">
+        Đăng bài
+      </button>
+    </div>
+
+    <div style="display:flex;justify-content:space-between;align-items:center">
+    <h2>🗨️ Forum: ${books[bookKey].title}</h2>
+    <button onclick="leaveForum('${bookKey}')"
+      style="padding:8px 16px;border:none;border-radius:20px;
+             background:#eee;color:#111;cursor:pointer">
+      🚪 Thoát
+    </button>
+  </div>
+
+    ${forumPosts.map(p => `
+      <div class="post">
+        <h4>@${p.user}</h4>
+        <p>${p.text}</p>
+      </div>
+    `).join("")}
+  `;
+}
+
+function createForumPost(bookKey){
+  const text = document.getElementById("forumText").value.trim();
+  if(!text) return;
+
+  let forumPosts = JSON.parse(localStorage.getItem("forum_"+bookKey) || "[]");
+
+  forumPosts.unshift({
+    user: localStorage.getItem("user") || "Anonymous",
+    text
+  });
+
+  localStorage.setItem("forum_"+bookKey, JSON.stringify(forumPosts));
+  openForumDetail(bookKey); // render lại
+}
+
+function leaveForum(bookKey){
+  if(!confirm("Bạn có chắc muốn thoát diễn đàn này không?")) return;
+
+  let joined = JSON.parse(localStorage.getItem("joinedForums") || "[]");
+  joined = joined.filter(k => k !== bookKey);
+
+  localStorage.setItem("joinedForums", JSON.stringify(joined));
+
+  showForum(); // quay về danh sách Forum
+}
+
+function openAuthorProfile(){
+  if(!currentAuthorKey || !authors[currentAuthorKey]) return;
+
+  const a = authors[currentAuthorKey];
+  bookModal.style.display = "none";
+  journalBar.style.display = "none";
+
+  content.innerHTML = `
+    <div class="post" style="max-width:700px;margin:auto">
+      <div style="display:flex;gap:20px;align-items:center">
+        <img src="${a.avatar}"
+             style="width:120px;height:120px;border-radius:50%;
+                    object-fit:cover;border:3px solid #111">
+        <div>
+          <h2 style="margin:0">${a.name}</h2>
+          <p style="margin:6px 0;color:#555">${a.years}</p>
+          <p style="margin:6px 0">${a.bio}</p>
+        </div>
+      </div>
+
+      <hr style="margin:20px 0">
+
+      <h3>Tác phẩm tiêu biểu</h3>
+      ${a.works.map(w=>`<div class="post">${w}</div>`).join("")}
+
+      <button onclick="showFeed()"
+        style="margin-top:20px;padding:10px 20px;
+               border:none;border-radius:20px;
+               background:#111;color:white;cursor:pointer">
+        ← Quay lại
+      </button>
+    </div>
+  `;
+}
+
+
+
+
+</script>
+
+</body>
+</html>
